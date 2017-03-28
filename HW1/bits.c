@@ -1,7 +1,7 @@
 /* 
  * CS:APP Data Lab 
  * 
- * Nugzar Chkhaidze nchkhaidze
+ * <Nugzar Chkhaidze nchkhaidze>
  * 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
@@ -171,7 +171,7 @@ NOTES:
  *   Rating: 2
  */
 int oddBits(void) {
-  return 2;
+  return 0xAAAAAAAA ;
 }
 /*
  * isTmin - returns 1 if x is the minimum, two's complement number,
@@ -181,7 +181,7 @@ int oddBits(void) {
  *   Rating: 1
  */
 int isTmin(int x) {
-  return 2;
+  return !(!x+(x^(~x+1)));
 }
 /* 
  * bitXor - x^y using only ~ and & 
@@ -191,7 +191,7 @@ int isTmin(int x) {
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return 2;
+  return (~(x&y))&(~(~x&~y));
 }
 /* 
  * conditional - same as x ? y : z 
@@ -201,7 +201,8 @@ int bitXor(int x, int y) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  x=~(!!x)+1;
+  return (x&y)|(~x&z);
 }
 /* 
  * greatestBitPos - return a mask that marks the position of the
@@ -212,7 +213,13 @@ int conditional(int x, int y, int z) {
  *   Rating: 4 
  */
 int greatestBitPos(int x) {
-  return 2;
+ 
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+  x |= x >> 16;
+  return (x&((~x>>1)^(1<<31)));
 }
 /* 
  * divpwr2 - Compute x/(2^n), for 0 <= n <= 30
@@ -223,7 +230,8 @@ int greatestBitPos(int x) {
  *   Rating: 2
  */
 int divpwr2(int x, int n) {
-    return 2;
+    int k=(x>>31)&((1<<n)+(~0));
+    return (x+k)>>n;
 }
 /* 
  * isNonNegative - return 1 if x >= 0, return 0 otherwise 
@@ -233,7 +241,7 @@ int divpwr2(int x, int n) {
  *   Rating: 3
  */
 int isNonNegative(int x) {
-  return 2;
+  return !(x>>31);
 }
 /*
  * satMul2 - multiplies by 2, saturating to Tmin or Tmax if overflow
@@ -245,6 +253,14 @@ int isNonNegative(int x) {
  *   Rating: 3
  */
 int satMul2(int x) {
+  int tmin=0x1<<31;
+
+  int two=x+x;
+  int val=(x^two)>>31;
+  int k=((x>>31)^(~tmin))&val; 
+
+return (k)|((~val)&two);
+
   return 2;
 }
 /* 
@@ -255,7 +271,10 @@ int satMul2(int x) {
  *   Rating: 3
  */
 int isLess(int x, int y) {
-  return 2;
+  int a=x&(~y);
+  int b=(~(x^y))&(x+(~y+1));
+
+  return (a|b)>>31&1;
 }
 /* 
  * isAsciiDigit - return 1 if 0x30 <= x <= 0x39 (ASCII codes for characters '0' to '9')
@@ -267,7 +286,10 @@ int isLess(int x, int y) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int a,b;
+  a=(x+(~0x2f))>>31;
+  b=((~x)+58)>>31;
+  return (!(a|b));
 }
 /*
  * trueThreeFourths - multiplies by 3/4 rounding toward 0,
@@ -281,7 +303,11 @@ int isAsciiDigit(int x) {
  */
 int trueThreeFourths(int x)
 {
-  return 2;
+  int a,x3,res;
+  a=x&3;
+  x3=a+a+a;
+  res=((x3+(((x>>2)>>31)&3))>>2);
+  return (x>>2)+((x>>2)<<1)+res;	
 }
 /*
  * ilog2 - return floor(log base 2 of x), where x > 0
@@ -291,7 +317,14 @@ int trueThreeFourths(int x)
  *   Rating: 4
  */
 int ilog2(int x) {
-  return 2;
+  int k=0;
+  k=((!!(x>>16))<<4);
+  k+=((!!(x>>(k+8)))<<3);
+  k+=((!!(x>>(k+4)))<<2);
+  k+=((!!(x>>(k+2)))<<1);
+  k+=(!!(x>>(k+1)));
+  return k;
+
 }
 /* 
  * float_neg - Return bit-level equivalent of expression -f for
@@ -305,7 +338,10 @@ int ilog2(int x) {
  *   Rating: 2
  */
 unsigned float_neg(unsigned uf) {
- return 2;
+ int a=(uf&((1<<23)+~0));
+ if(((uf>>23)&255)==255 && a)return uf;
+ else return uf^(1u<<31);
+	
 }
 /* 
  * float_i2f - Return bit-level equivalent of expression (float) x
@@ -317,7 +353,22 @@ unsigned float_neg(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_i2f(int x) {
-  return 2;
+  unsigned i, a, res;	
+ 
+  if (!x)return x;
+
+  res=0x80000000&x;               
+  if(x&0x80000000)x=-x;
+
+  a=x;	
+  i=0;
+  while(a)a>>=1,i++;
+	
+  res+=((i+126)<<23);
+  x<<=(31-i);
+  res+=(x>>7)&0x007FFFFF;
+  res+=(0x40&x)&&(0x40^(x&0xff));
+  return res;
 }
 /* 
  * float_twice - Return bit-level equivalent of expression 2*f for
@@ -331,5 +382,10 @@ unsigned float_i2f(int x) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
-  return 2;
+  if(uf==0 || uf==0x80000000) return uf;
+  if(((uf>>23)&0xff)==0xff) return uf;
+  if(!((uf>>23)&0xff)) 
+	return (uf&(1<<31))|(uf<<1);
+	
+  return uf + (1<<23);
 }
