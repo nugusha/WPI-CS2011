@@ -213,7 +213,6 @@ int conditional(int x, int y, int z) {
  *   Rating: 4 
  */
 int greatestBitPos(int x) {
- 
   x |= x >> 1;
   x |= x >> 2;
   x |= x >> 4;
